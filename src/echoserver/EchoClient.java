@@ -5,7 +5,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 
-public class EchoClient {
+public class EchoClient extends Throwable {
 	public static final int PORT_NUMBER = 6013;
 
 	public static void main(String[] args) throws IOException {
