@@ -7,9 +7,9 @@ import java.net.Socket;
 
 public class EchoClient extends Throwable {
 	public static final int PORT_NUMBER = 6013;
-	public static InputStream socketInputStream = null;
-	public static OutputStream socketOutputStream = null;
-	public static Socket socket = null;
+	static InputStream socketInputStream;
+	static OutputStream socketOutputStream;
+	static Socket socket;
 
 
 	public static void main(String[] args) throws IOException {
@@ -23,63 +23,54 @@ public class EchoClient extends Throwable {
 
 
 		try {
-			socket = new Socket(hostName, PORT_NUMBER);
+			socket = new Socket("localhost", PORT_NUMBER);
 			socketInputStream = socket.getInputStream();
 			socketOutputStream = socket.getOutputStream();
 
-			System.out.println("thread");
 
-			Thread outputWriter = new Thread(new outputWriter());
+			Thread inputReader = new Thread(EchoClient::inputReader);
+			Thread outputWriter = new Thread(EchoClient::outputWriter);
 
 
-			Thread inputReader = new Thread(new inputReader());
-
-			System.out.println("start");
-			outputWriter.start();
 			inputReader.start();
+			outputWriter.start();
 
-			System.out.println("join");
-			outputWriter.join();
+
 			inputReader.join();
-
+			outputWriter.join();
 
 
 			socket.close();
-
-			System.out.println("close");
 		} catch(Exception e){
 			System.out.println(e);
 		}
 
 	}
 
-	public static class inputReader implements Runnable {
-		@Override
-		public void run() {
-			int currentByte;
-			try {
-				while ((currentByte = System.in.read()) != -1) {
-					socketOutputStream.write(currentByte);
-					socketOutputStream.flush();
-				}
-			} catch(Exception e){
-				System.out.println(e);
+
+	public static void inputReader() {
+		int currentByte;
+		try {
+			while ((currentByte = System.in.read()) != -1) {
+				socketOutputStream.write(currentByte);
+				socketOutputStream.flush();
 			}
+			socket.shutdownOutput();
+		} catch(Exception e) {
+			System.out.println(e);
 		}
 	}
 
-	public static class outputWriter implements Runnable {
-		@Override
-		public void run() {
-			int currentByte;
-			try {
-				while ((currentByte = socketInputStream.read()) != -1) {
-					System.out.write(currentByte);
-					System.out.flush();
-				}
-			} catch(Exception e){
-				System.out.println(e);
+
+	public static void outputWriter() {
+		int currentByte;
+		try {
+			while ((currentByte = socketInputStream.read()) != -1) {
+				System.out.write(currentByte);
+				System.out.flush();
 			}
+		} catch(Exception e){
+			System.out.println(e);
 		}
 	}
 
